@@ -12,13 +12,11 @@ module.exports.createUser = (req, res, next) => {
   const { name, email, password } = req.body;
   bcrypt
     .hash(password, 10)
-    .then((hash) =>
-      User.create({
-        name,
-        email,
-        password: hash,
-      })
-    )
+    .then((hash) => User.create({
+      name,
+      email,
+      password: hash,
+    }))
     .then((user) => {
       res.status(200).send({
         name: user.name,
@@ -78,7 +76,7 @@ module.exports.updateProfile = (req, res, next) => {
   const { name, email } = req.body;
   if (!name || !email) {
     throw new BadRequestError(
-      "Переданы некорректные данные, проверьте правильность заполнения полей"
+      "Переданы некорректные данные, проверьте правильность заполнения полей",
     );
   }
   return User.findByIdAndUpdate(
@@ -87,7 +85,7 @@ module.exports.updateProfile = (req, res, next) => {
     {
       new: true,
       runValidators: true,
-    }
+    },
   )
     .orFail(new Error("NotValidId"))
     .then((user) => {

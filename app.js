@@ -1,11 +1,12 @@
-/* require("dotenv").config(); */
 const express = require("express");
 
 const app = express();
+const helmet = require("helmet");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const mongoose = require("mongoose");
 const { celebrate, Joi, errors } = require("celebrate");
+const limiter = require("./middlewares/limiter");
 
 mongoose.connect("mongodb://localhost:27017/movies-explorer", {
   useNewUrlParser: true,
@@ -19,6 +20,7 @@ const { PORT = 3000 } = process.env;
 
 const { login, createUser, logout } = require("./controllers/users");
 const auth = require("./middlewares/auth");
+const { requestLogger, errorLogger } = require("./middlewares/logger");
 const errorHandler = require("./middlewares/error-handler");
 const NotFoundError = require("./errors/not-found-err"); // 404
 const userRoutes = require("./routes/users");
@@ -28,6 +30,9 @@ const movieRoutes = require("./routes/movies");
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(requestLogger);
+app.use(helmet());
+app.use(limiter);
 
 // роуты регистрации и авторизации
 
@@ -40,7 +45,7 @@ app.post(
       password: Joi.string().min(8).required(),
     }),
   }),
-  createUser
+  createUser,
 );
 
 app.post(
@@ -51,7 +56,7 @@ app.post(
       password: Joi.string().min(8).required(),
     }),
   }),
-  login
+  login,
 );
 
 // защищенные авторизацией роуты
@@ -59,6 +64,7 @@ app.use(auth);
 app.post("/signout", logout);
 app.use("/users", userRoutes);
 app.use("/movies", movieRoutes);
+app.use(errorLogger);
 
 // обработка ошибок
 app.use(errors());

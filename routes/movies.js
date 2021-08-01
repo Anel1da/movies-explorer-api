@@ -50,7 +50,7 @@ router.post(
       nameEN: Joi.string().required().min(2).max(30),
     }),
   }),
-  createMovie
+  createMovie,
 );
 
 router.delete("/:movieId", deleteMovie);

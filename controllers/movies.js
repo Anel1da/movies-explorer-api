@@ -1,12 +1,8 @@
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 const Movie = require("../models/movie");
 
 const BadRequestError = require("../errors/bad-request-err"); // 400
-const UnauthorizedError = require("../errors/unauthorized-err"); // 401
 const ForbiddenError = require("../errors/forbidden-err"); // 403
 const NotFoundError = require("../errors/not-found-err"); // 404
-const ConflictError = require("../errors/conflict-err"); // 409
 
 module.exports.getMovies = (req, res, next) => {
   const owner = req.user._id;
