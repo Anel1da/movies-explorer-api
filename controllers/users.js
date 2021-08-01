@@ -8,7 +8,6 @@ const NotFoundError = require("../errors/not-found-err"); // 404
 const ConflictError = require("../errors/conflict-err"); // 409
 
 // регистрация пользователя
-
 module.exports.createUser = (req, res, next) => {
   const { name, email, password } = req.body;
   bcrypt
@@ -34,6 +33,27 @@ module.exports.createUser = (req, res, next) => {
       }
       next(err);
     });
+};
+// авторизация пользователя
+module.exports.login = (req, res, next) => {
+  const { email, password } = req.body;
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, "some-secret-key", {
+        expiresIn: "7d",
+      });
+      res
+        .cookie("jwt", token, {
+          maxAge: 3600000 * 24 * 7,
+          httpOnly: true,
+          sameSite: true,
+        })
+        .send({ message: "Авторизация прошла успешно" });
+    })
+    .catch(() => {
+      throw new UnauthorizedError("Неправильные почта или пароль");
+    })
+    .catch(next);
 };
 
 // получение информации о текущем пользователе
@@ -83,38 +103,7 @@ module.exports.updateProfile = (req, res, next) => {
       }
     });
 };
-
-/*
-const { NODE_ENV, JWT_SECRET } = process.env;
-
-
-// авторизация пользователя
-module.exports.login = (req, res, next) => {
-  const { email, password } = req.body;
-  return User.findUserByCredentials(email, password)
-    .then((user) => {
-      const token = jwt.sign(
-        { _id: user.id },
-        NODE_ENV === "production" ? JWT_SECRET : "dev-secret",
-        {
-          expiresIn: "7d",
-        }
-      );
-      res
-        .cookie("jwt", token, {
-          maxAge: 3600000 * 24 * 7,
-          httpOnly: true,
-          sameSite: true,
-        })
-        .send({ message: "Авторизация прошла успешно" });
-    })
-    .catch(() => {
-      throw new UnauthorizedError("Неправильные почта или пароль");
-    })
-    .catch(next);
-};
-
-// выход из профиля пользователя
+// выход из профиля
 module.exports.logout = (req, res) => {
   res
     .clearCookie("jwt", {
@@ -124,5 +113,7 @@ module.exports.logout = (req, res) => {
     .send({ message: "Вы успешно вышли из профиля" });
 };
 
+/*
+const { NODE_ENV, JWT_SECRET } = process.env;
 
  */

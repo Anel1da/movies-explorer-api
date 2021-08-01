@@ -17,7 +17,10 @@ mongoose.connect("mongodb://localhost:27017/movies-explorer", {
 // настраиваем порт
 const { PORT = 3000 } = process.env;
 
-const { login, createUser } = require("./controllers/users");
+const { login, createUser, logout } = require("./controllers/users");
+const auth = require("./middlewares/auth");
+const errorHandler = require("./middlewares/error-handler");
+const NotFoundError = require("./errors/not-found-err"); // 404
 const userRoutes = require("./routes/users");
 const movieRoutes = require("./routes/movies");
 
@@ -25,15 +28,6 @@ const movieRoutes = require("./routes/movies");
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
-
-// временное решение авторизации
-app.use((req, res, next) => {
-  req.user = {
-    _id: "61065d5ab94d1b58acda3b19",
-  };
-
-  next();
-});
 
 // роуты регистрации и авторизации
 
@@ -49,7 +43,7 @@ app.post(
   createUser
 );
 
-/* app.post(
+app.post(
   "/signin",
   celebrate({
     body: Joi.object().keys({
@@ -59,19 +53,20 @@ app.post(
   }),
   login
 );
- */
 
-/* app.post("/signout", logout); */
-
+// защищенные авторизацией роуты
+app.use(auth);
+app.post("/signout", logout);
 app.use("/users", userRoutes);
 app.use("/movies", movieRoutes);
 
 // обработка ошибок
 app.use(errors());
-/* app.use("*", () => {
+app.use(errorHandler);
+app.use("*", () => {
   throw new NotFoundError("Запрашиваемый ресурс не найден");
 });
- */
+
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
 });
