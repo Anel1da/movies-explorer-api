@@ -2,14 +2,13 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 
-const { NODE_ENV, JWT_SECRET } = process.env;
-
 const BadRequestError = require("../errors/bad-request-err"); // 400
 const UnauthorizedError = require("../errors/unauthorized-err"); // 401
 const NotFoundError = require("../errors/not-found-err"); // 404
 const ConflictError = require("../errors/conflict-err"); // 409
 
 // регистрация пользователя
+
 module.exports.createUser = (req, res, next) => {
   const { name, email, password } = req.body;
   bcrypt
@@ -37,13 +36,65 @@ module.exports.createUser = (req, res, next) => {
     });
 };
 
+// получение информации о текущем пользователе
+
+module.exports.getMe = (req, res, next) => {
+  User.findById(req.user._id)
+    .orFail(new Error("NotValidId"))
+    .then((user) => {
+      res.status(200).send(user);
+    })
+    .catch((err) => {
+      if (err.message === "NotValidId") {
+        next(new NotFoundError("Запрашиваемый пользователь не найден"));
+      } else {
+        next(err);
+      }
+    });
+};
+
+// обновление профайла
+module.exports.updateProfile = (req, res, next) => {
+  const { name, email } = req.body;
+  if (!name || !email) {
+    throw new BadRequestError(
+      "Переданы некорректные данные, проверьте правильность заполнения полей"
+    );
+  }
+  return User.findByIdAndUpdate(
+    req.user._id,
+    { name, email },
+    {
+      new: true,
+      runValidators: true,
+    }
+  )
+    .orFail(new Error("NotValidId"))
+    .then((user) => {
+      res.status(200).send(user);
+    })
+    .catch((err) => {
+      if (err.message === "CastError") {
+        next(new BadRequestError("Переданы некорректные данные"));
+      } else if (err.message === "NotValidId") {
+        next(new NotFoundError("Запрашиваемый пользователь не найден"));
+      } else {
+        next(err);
+      }
+    });
+};
+
+/*
+const { NODE_ENV, JWT_SECRET } = process.env;
+
+
 // авторизация пользователя
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign(
-        { _id: user._id },
+        { _id: user.id },
         NODE_ENV === "production" ? JWT_SECRET : "dev-secret",
         {
           expiresIn: "7d",
@@ -73,18 +124,5 @@ module.exports.logout = (req, res) => {
     .send({ message: "Вы успешно вышли из профиля" });
 };
 
-// получение информации о текущем пользователе
-module.exports.getMe = (req, res, next) => {
-  User.findById(req.user._id)
-    .orFail(new Error("NotValidId"))
-    .then((user) => {
-      res.status(200).send(user);
-    })
-    .catch((err) => {
-      if (err.message === "NotValidId") {
-        next(new NotFoundError("Запрашиваемый пользователь не найден"));
-      } else {
-        next(err);
-      }
-    });
-};
+
+ */

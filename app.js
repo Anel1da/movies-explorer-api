@@ -1,11 +1,11 @@
+/* require("dotenv").config(); */
 const express = require("express");
 
 const app = express();
 const bodyParser = require("body-parser");
-const { celebrate, Joi, errors } = require("celebrate");
-const validator = require("validator");
+const cookieParser = require("cookie-parser");
 const mongoose = require("mongoose");
-const NotFoundError = require("./errors/not-found-err"); // 404
+const { celebrate, Joi, errors } = require("celebrate");
 
 mongoose.connect("mongodb://localhost:27017/movies-explorer", {
   useNewUrlParser: true,
@@ -17,31 +17,25 @@ mongoose.connect("mongodb://localhost:27017/movies-explorer", {
 // настраиваем порт
 const { PORT = 3000 } = process.env;
 
-// краш-тест сервера
-app.get("/crash-test", () => {
-  setTimeout(() => {
-    throw new Error("Сервер сейчас упадёт");
-  }, 0);
-});
+const { login, createUser } = require("./controllers/users");
+const userRoutes = require("./routes/users");
+const movieRoutes = require("./routes/movies");
 
 // мидлвэры
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cookieParser());
 
-// работа с роутами регистрации и авторизации
-const { login, createUser, logout } = require("./controllers/users");
-const userRoutes = require("./routes/users");
+// временное решение авторизации
+app.use((req, res, next) => {
+  req.user = {
+    _id: "61065d5ab94d1b58acda3b19",
+  };
 
-app.post(
-  "/signin",
-  celebrate({
-    body: Joi.object().keys({
-      email: Joi.string().required().email(),
-      password: Joi.string().min(8).required(),
-    }),
-  }),
-  login
-);
+  next();
+});
+
+// роуты регистрации и авторизации
 
 app.post(
   "/signup",
@@ -55,7 +49,22 @@ app.post(
   createUser
 );
 
-app.post("/signout", logout);
+/* app.post(
+  "/signin",
+  celebrate({
+    body: Joi.object().keys({
+      email: Joi.string().required().email(),
+      password: Joi.string().min(8).required(),
+    }),
+  }),
+  login
+);
+ */
+
+/* app.post("/signout", logout); */
+
+app.use("/users", userRoutes);
+app.use("/movies", movieRoutes);
 
 // обработка ошибок
 app.use(errors());
