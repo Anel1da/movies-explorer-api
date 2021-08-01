@@ -1,10 +1,13 @@
 const router = require("express").Router();
 const { celebrate, Joi } = require("celebrate");
 
-const { getMe, updateProfile } = require("../controllers/users");
+const {
+  getMe,
+  updateProfile,
+
+} = require("../controllers/users");
 
 // /users
-
 router.get("/me", getMe);
 
 router.patch(
