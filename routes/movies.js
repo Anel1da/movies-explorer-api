@@ -45,7 +45,7 @@ router.post(
           }
           return helpers.message("Проверьте правильность заполнения данных");
         }),
-      movieId: Joi.number().required(),
+      movieId: Joi.string().hex().length(24),
       nameRU: Joi.string().required().min(2).max(30),
       nameEN: Joi.string().required().min(2).max(30),
     }),
@@ -53,6 +53,14 @@ router.post(
   createMovie,
 );
 
-router.delete("/:movieId", deleteMovie);
+router.delete(
+  "/:movieId",
+  celebrate({
+    params: Joi.object().keys({
+      movieId: Joi.string().length(24).hex(),
+    }),
+  }),
+  deleteMovie,
+);
 
 module.exports = router;

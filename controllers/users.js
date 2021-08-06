@@ -14,15 +14,13 @@ module.exports.createUser = (req, res, next) => {
   const { name, email, password } = req.body;
   bcrypt
     .hash(password, 10)
-    .then((hash) =>
-      User.create({
-        name,
-        email,
-        password: hash,
-      })
-    )
+    .then((hash) => User.create({
+      name,
+      email,
+      password: hash,
+    }))
     .then((user) => {
-      res.status(200).send({
+      res.send({
         name: user.name,
         email: user.email,
       });
@@ -32,8 +30,9 @@ module.exports.createUser = (req, res, next) => {
         next(new BadRequestError("Переданы некорректные данные"));
       } else if (err.name === "MongoError" && err.code === 11000) {
         next(new ConflictError("Такой пользователь уже существует"));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 // авторизация пользователя
@@ -46,7 +45,7 @@ module.exports.login = (req, res, next) => {
         NODE_ENV === "production" ? JWT_SECRET : "dev-secret",
         {
           expiresIn: "7d",
-        }
+        },
       );
       res
         .cookie("jwt", token, {
@@ -68,7 +67,7 @@ module.exports.getMe = (req, res, next) => {
   User.findById(req.user._id)
     .orFail(new Error("NotValidId"))
     .then((user) => {
-      res.status(200).send(user);
+      res.send(user);
     })
     .catch((err) => {
       if (err.message === "NotValidId") {
@@ -84,7 +83,7 @@ module.exports.updateProfile = (req, res, next) => {
   const { name, email } = req.body;
   if (!name || !email) {
     throw new BadRequestError(
-      "Переданы некорректные данные, проверьте правильность заполнения полей"
+      "Переданы некорректные данные, проверьте правильность заполнения полей",
     );
   }
   return User.findByIdAndUpdate(
@@ -93,22 +92,23 @@ module.exports.updateProfile = (req, res, next) => {
     {
       new: true,
       runValidators: true,
-    }
+    },
   )
     .orFail(new Error("NotValidId"))
     .then((user) => {
-      res.status(200).send(user);
+      res.send(user);
     })
     .catch((err) => {
-      if (err.message === "CastError") {
+      if (err.name === "ValidationError") {
         next(new BadRequestError("Переданы некорректные данные"));
-      } else if (err.message === "NotValidId") {
-        next(new NotFoundError("Запрашиваемый пользователь не найден"));
+      } else if (err.name === "MongoError" && err.code === 11000) {
+        next(new ConflictError("Такой пользователь уже существует"));
       } else {
         next(err);
       }
     });
 };
+
 // выход из профиля
 module.exports.logout = (req, res) => {
   res
@@ -118,8 +118,3 @@ module.exports.logout = (req, res) => {
     })
     .send({ message: "Вы успешно вышли из профиля" });
 };
-
-/*
-const { NODE_ENV, JWT_SECRET } = process.env;
-
- */

@@ -56,16 +56,18 @@ module.exports.deleteMovie = (req, res, next) => {
     .orFail(new Error("NotValidId"))
     .then((movie) => {
       if (movie.owner.toString() === req.user._id) {
-        movie.remove();
-        res.status(200).send({ message: "Фильм удален из сохраненных" });
-      } else {
-        throw new ForbiddenError("Недостаточно прав для удаления фильма");
+        return movie.remove().then(() => res.send({ message: "Фильм удален" }));
       }
+      throw new ForbiddenError("Недостаточно прав для удаления фильма");
     })
     .catch((err) => {
       if (err.message === "NotValidId") {
         next(new NotFoundError("Фильм не найден"));
       }
-      next(err);
+      if (err.name === "ValidationError") {
+        next(new BadRequestError("Переданы некорректный данные"));
+      } else {
+        next(err);
+      }
     });
 };
