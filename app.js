@@ -1,6 +1,7 @@
 require("dotenv").config();
 
 const express = require("express");
+const cors = require("cors");
 
 const app = express();
 const helmet = require("helmet");
@@ -8,13 +9,13 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const mongoose = require("mongoose");
 const { errors } = require("celebrate");
-const limiter = require("./middlewares/limiter");
+/* const limiter = require("./middlewares/limiter"); */
 const router = require("./routes/index");
 const { requestLogger, errorLogger } = require("./middlewares/logger");
 const errorHandler = require("./middlewares/error-handler");
 
 // настраиваем порт
-const { PORT = 3000, MONGO_URL = "mongodb://localhost:27017/movies-explorer" } =
+const { PORT = 3001, MONGO_URL = "mongodb://localhost:27017/movies-explorer" } =
   process.env;
 
 mongoose.connect(MONGO_URL, {
@@ -26,7 +27,9 @@ mongoose.connect(MONGO_URL, {
 
 // мидлвэры
 app.use(requestLogger);
-app.use(limiter);
+app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
+app.options("*", cors());
+/* app.use(limiter); */
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));

@@ -16,7 +16,7 @@ router.post(
       password: Joi.string().min(8).required(),
     }),
   }),
-  createUser,
+  createUser
 );
 
 router.post(
@@ -27,7 +27,7 @@ router.post(
       password: Joi.string().min(8).required(),
     }),
   }),
-  login,
+  login
 );
 
 router.post("/signout", logout);
