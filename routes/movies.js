@@ -20,7 +20,7 @@ router.post(
       director: Joi.string().required().min(2).max(30),
       duration: Joi.number().required(),
       year: Joi.string().required(),
-      description: Joi.string().required().min(2).max(30),
+      description: Joi.string().required().min(2),
       image: Joi.string()
         .required()
         .custom((value, helpers) => {
@@ -45,12 +45,12 @@ router.post(
           }
           return helpers.message("Проверьте правильность заполнения данных");
         }),
-      movieId: Joi.string().hex().length(24),
+      movieId: Joi.number().required(),
       nameRU: Joi.string().required().min(2).max(30),
       nameEN: Joi.string().required().min(2).max(30),
     }),
   }),
-  createMovie,
+  createMovie
 );
 
 router.delete(
@@ -60,7 +60,7 @@ router.delete(
       movieId: Joi.string().length(24).hex(),
     }),
   }),
-  deleteMovie,
+  deleteMovie
 );
 
 module.exports = router;
