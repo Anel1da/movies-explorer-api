@@ -16,8 +16,8 @@ router.post(
   "/",
   celebrate({
     body: Joi.object().keys({
-      country: Joi.string().required().min(2).max(30),
-      director: Joi.string().required().min(2).max(30),
+      country: Joi.string().required().min(2),
+      director: Joi.string().required().min(2),
       duration: Joi.number().required(),
       year: Joi.string().required(),
       description: Joi.string().required().min(2),
@@ -46,8 +46,8 @@ router.post(
           return helpers.message("Проверьте правильность заполнения данных");
         }),
       movieId: Joi.number().required(),
-      nameRU: Joi.string().required().min(2).max(30),
-      nameEN: Joi.string().required().min(2).max(30),
+      nameRU: Joi.string().required().min(2),
+      nameEN: Joi.string().required().min(2),
     }),
   }),
   createMovie
