@@ -9,7 +9,7 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const mongoose = require("mongoose");
 const { errors } = require("celebrate");
-/* const limiter = require("./middlewares/limiter"); */
+const limiter = require("./middlewares/limiter");
 const router = require("./routes/index");
 const { requestLogger, errorLogger } = require("./middlewares/logger");
 const errorHandler = require("./middlewares/error-handler");
@@ -29,7 +29,7 @@ mongoose.connect(MONGO_URL, {
 app.use(requestLogger);
 app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 app.options("*", cors());
-/* app.use(limiter); */
+app.use(limiter);
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
