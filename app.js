@@ -27,7 +27,7 @@ mongoose.connect(MONGO_URL, {
 
 // мидлвэры
 app.use(requestLogger);
-app.use(cors({ credentials: true, origin: "http://api.moviesexplorer.nomoredomains.club" }));
+app.use(cors({ credentials: true, origin: "http://movies-explorer-frontend.nomoredomains.club" }));
 app.options("*", cors());
 app.use(limiter);
 app.use(cookieParser());
