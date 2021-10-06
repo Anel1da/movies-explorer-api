@@ -26,7 +26,7 @@ ____
 |  POST  | `/movies`| Создаёт фильм с переданными в теле country, director, duration, year, description, image, trailer, nameRU, nameEN и thumbnail, movieId  | true |
 | DELETE | `/movies/movieId` | Удаляет сохранённый фильм из избранного по id  | true |
 |   GET  | `/users/me`| Возвращает информацию о текущем пользователе |  true  |
-|  PATCH | `/users/me`| Редактитует проыиль пользователя|  true  |
+|  PATCH | `/users/me`| Редактитует профиль пользователя|  true  |
 
 
 
